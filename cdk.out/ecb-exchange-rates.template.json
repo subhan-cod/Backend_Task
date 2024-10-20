@@ -1,0 +1,1397 @@
+{
+ "Resources": {
+  "ExecutionRole605A040B": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "cloudformation.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/AdministratorAccess"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/ExecutionRole/Resource"
+   }
+  },
+  "tableecbexchangerates005A787E": {
+   "Type": "AWS::DynamoDB::Table",
+   "Properties": {
+    "AttributeDefinitions": [
+     {
+      "AttributeName": "id",
+      "AttributeType": "S"
+     }
+    ],
+    "KeySchema": [
+     {
+      "AttributeName": "id",
+      "KeyType": "HASH"
+     }
+    ],
+    "ProvisionedThroughput": {
+     "ReadCapacityUnits": 5,
+     "WriteCapacityUnits": 5
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/table-ecb-exchange-rates/Resource"
+   }
+  },
+  "updateecbexchangeratesServiceRole82B90291": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/update-ecb-exchange-rates/ServiceRole/Resource"
+   }
+  },
+  "updateecbexchangeratesServiceRoleDefaultPolicyCD77063D": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "tableecbexchangerates005A787E",
+          "Arn"
+         ]
+        },
+        {
+         "Ref": "AWS::NoValue"
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "updateecbexchangeratesServiceRoleDefaultPolicyCD77063D",
+    "Roles": [
+     {
+      "Ref": "updateecbexchangeratesServiceRole82B90291"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/update-ecb-exchange-rates/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "updateecbexchangeratesA57BE1BD": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "4aca28269e959fd1ff766d5f3d11f3c2adac54ca6ba269ca811a5f3aed045bed.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DYNAMO_TABLE_NAME": {
+       "Ref": "tableecbexchangerates005A787E"
+      }
+     }
+    },
+    "Handler": "update_ecb_exchange_rates.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "updateecbexchangeratesServiceRole82B90291",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.9",
+    "Timeout": 360
+   },
+   "DependsOn": [
+    "updateecbexchangeratesServiceRoleDefaultPolicyCD77063D",
+    "updateecbexchangeratesServiceRole82B90291"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/update-ecb-exchange-rates/Resource",
+    "aws:asset:path": "asset.4aca28269e959fd1ff766d5f3d11f3c2adac54ca6ba269ca811a5f3aed045bed",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "updateecbexchangeratesLogRetention1866C204": {
+   "Type": "Custom::LogRetention",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+      "Arn"
+     ]
+    },
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "updateecbexchangeratesA57BE1BD"
+       }
+      ]
+     ]
+    },
+    "RetentionInDays": 1
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/update-ecb-exchange-rates/LogRetention/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "logs:DeleteRetentionPolicy",
+        "logs:PutRetentionPolicy"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+    "Roles": [
+     {
+      "Ref": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Handler": "index.handler",
+    "Runtime": {
+     "Fn::FindInMap": [
+      "LatestNodeRuntimeMap",
+      {
+       "Ref": "AWS::Region"
+      },
+      "value"
+     ]
+    },
+    "Timeout": 900,
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "2819175352ad1ce0dae768e83fc328fb70fb5f10b4a8ff0ccbcb791f02b0716d.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB",
+      "Arn"
+     ]
+    }
+   },
+   "DependsOn": [
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Resource",
+    "aws:asset:path": "asset.2819175352ad1ce0dae768e83fc328fb70fb5f10b4a8ff0ccbcb791f02b0716d",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "getecbexchangeratesServiceRole47BAF6F7": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/get-ecb-exchange-rates/ServiceRole/Resource"
+   }
+  },
+  "getecbexchangeratesServiceRoleDefaultPolicy41466F8C": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:Query",
+        "dynamodb:Scan"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "tableecbexchangerates005A787E",
+          "Arn"
+         ]
+        },
+        {
+         "Ref": "AWS::NoValue"
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "getecbexchangeratesServiceRoleDefaultPolicy41466F8C",
+    "Roles": [
+     {
+      "Ref": "getecbexchangeratesServiceRole47BAF6F7"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/get-ecb-exchange-rates/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "getecbexchangerates70E614A9": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "a3400133a03b2c08caf4e41cee302eaaf7d465c84f774f0a07e437d288a2696f.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DYNAMO_TABLE_NAME": {
+       "Ref": "tableecbexchangerates005A787E"
+      }
+     }
+    },
+    "Handler": "get_ecb_exchange_rates.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "getecbexchangeratesServiceRole47BAF6F7",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.9",
+    "Timeout": 60
+   },
+   "DependsOn": [
+    "getecbexchangeratesServiceRoleDefaultPolicy41466F8C",
+    "getecbexchangeratesServiceRole47BAF6F7"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/get-ecb-exchange-rates/Resource",
+    "aws:asset:path": "asset.a3400133a03b2c08caf4e41cee302eaaf7d465c84f774f0a07e437d288a2696f",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "getecbexchangeratesLogRetention4030E97F": {
+   "Type": "Custom::LogRetention",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+      "Arn"
+     ]
+    },
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "getecbexchangerates70E614A9"
+       }
+      ]
+     ]
+    },
+    "RetentionInDays": 1
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/get-ecb-exchange-rates/LogRetention/Resource"
+   }
+  },
+  "ecbexchangeratesupdatescheduler03FA37B3": {
+   "Type": "AWS::Events::Rule",
+   "Properties": {
+    "ScheduleExpression": "cron(0 17 * * ? *)",
+    "State": "ENABLED",
+    "Targets": [
+     {
+      "Arn": {
+       "Fn::GetAtt": [
+        "updateecbexchangeratesA57BE1BD",
+        "Arn"
+       ]
+      },
+      "Id": "Target0"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/ecb-exchange-rates-update-scheduler/Resource"
+   }
+  },
+  "ecbexchangeratesupdateschedulerAllowEventRuleecbexchangeratesupdateecbexchangerates0AE420D749FA148F": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "updateecbexchangeratesA57BE1BD",
+      "Arn"
+     ]
+    },
+    "Principal": "events.amazonaws.com",
+    "SourceArn": {
+     "Fn::GetAtt": [
+      "ecbexchangeratesupdatescheduler03FA37B3",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/ecb-exchange-rates-update-scheduler/AllowEventRuleecbexchangeratesupdateecbexchangerates0AE420D7"
+   }
+  },
+  "apiecbexchangerates88EA32F8": {
+   "Type": "AWS::ApiGateway::RestApi",
+   "Properties": {
+    "Name": "api-ecb-exchange-rates"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/api-ecb-exchange-rates/Resource"
+   }
+  },
+  "apiecbexchangeratesDeploymentC347F48E8090133f7f72e19f990ae6fd0d73d8d0": {
+   "Type": "AWS::ApiGateway::Deployment",
+   "Properties": {
+    "Description": "Automatically created by the RestApi construct",
+    "RestApiId": {
+     "Ref": "apiecbexchangerates88EA32F8"
+    }
+   },
+   "DependsOn": [
+    "apiecbexchangeratesgetecbexchangeratesGET06C5CBFD",
+    "apiecbexchangeratesgetecbexchangerates4ABAEE61"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/api-ecb-exchange-rates/Deployment/Resource"
+   }
+  },
+  "apiecbexchangeratesDeploymentStageprod760EA48E": {
+   "Type": "AWS::ApiGateway::Stage",
+   "Properties": {
+    "DeploymentId": {
+     "Ref": "apiecbexchangeratesDeploymentC347F48E8090133f7f72e19f990ae6fd0d73d8d0"
+    },
+    "RestApiId": {
+     "Ref": "apiecbexchangerates88EA32F8"
+    },
+    "StageName": "prod"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/api-ecb-exchange-rates/DeploymentStage.prod/Resource"
+   }
+  },
+  "apiecbexchangeratesgetecbexchangerates4ABAEE61": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Fn::GetAtt": [
+      "apiecbexchangerates88EA32F8",
+      "RootResourceId"
+     ]
+    },
+    "PathPart": "getecbexchangerates",
+    "RestApiId": {
+     "Ref": "apiecbexchangerates88EA32F8"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/api-ecb-exchange-rates/Default/getecbexchangerates/Resource"
+   }
+  },
+  "apiecbexchangeratesgetecbexchangeratesGETApiPermissionecbexchangeratesapiecbexchangerates5F3B4402GETgetecbexchangerates4D7BD615": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "getecbexchangerates70E614A9",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "apiecbexchangerates88EA32F8"
+       },
+       "/",
+       {
+        "Ref": "apiecbexchangeratesDeploymentStageprod760EA48E"
+       },
+       "/GET/getecbexchangerates"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/api-ecb-exchange-rates/Default/getecbexchangerates/GET/ApiPermission.ecbexchangeratesapiecbexchangerates5F3B4402.GET..getecbexchangerates"
+   }
+  },
+  "apiecbexchangeratesgetecbexchangeratesGETApiPermissionTestecbexchangeratesapiecbexchangerates5F3B4402GETgetecbexchangerates6388212F": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "getecbexchangerates70E614A9",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "apiecbexchangerates88EA32F8"
+       },
+       "/test-invoke-stage/GET/getecbexchangerates"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/api-ecb-exchange-rates/Default/getecbexchangerates/GET/ApiPermission.Test.ecbexchangeratesapiecbexchangerates5F3B4402.GET..getecbexchangerates"
+   }
+  },
+  "apiecbexchangeratesgetecbexchangeratesGET06C5CBFD": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "AuthorizationType": "NONE",
+    "HttpMethod": "GET",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:",
+        {
+         "Ref": "AWS::Region"
+        },
+        ":lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "getecbexchangerates70E614A9",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    },
+    "ResourceId": {
+     "Ref": "apiecbexchangeratesgetecbexchangerates4ABAEE61"
+    },
+    "RestApiId": {
+     "Ref": "apiecbexchangerates88EA32F8"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/api-ecb-exchange-rates/Default/getecbexchangerates/GET/Resource"
+   }
+  },
+  "initecbechangeratesServiceRoleBD89B240": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/init-ecb-echange-rates/ServiceRole/Resource"
+   }
+  },
+  "initecbechangeratesServiceRoleDefaultPolicyEC09406B": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:ConditionCheckItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:DescribeTable",
+        "dynamodb:GetItem",
+        "dynamodb:GetRecords",
+        "dynamodb:GetShardIterator",
+        "dynamodb:PutItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:UpdateItem"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "tableecbexchangerates005A787E",
+          "Arn"
+         ]
+        },
+        {
+         "Ref": "AWS::NoValue"
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "initecbechangeratesServiceRoleDefaultPolicyEC09406B",
+    "Roles": [
+     {
+      "Ref": "initecbechangeratesServiceRoleBD89B240"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/init-ecb-echange-rates/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "initecbechangerates84913F41": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "4aca28269e959fd1ff766d5f3d11f3c2adac54ca6ba269ca811a5f3aed045bed.zip"
+    },
+    "Environment": {
+     "Variables": {
+      "DYNAMO_TABLE_NAME": {
+       "Ref": "tableecbexchangerates005A787E"
+      }
+     }
+    },
+    "Handler": "update_ecb_exchange_rates.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "initecbechangeratesServiceRoleBD89B240",
+      "Arn"
+     ]
+    },
+    "Runtime": "python3.9",
+    "Timeout": 300
+   },
+   "DependsOn": [
+    "initecbechangeratesServiceRoleDefaultPolicyEC09406B",
+    "initecbechangeratesServiceRoleBD89B240"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/init-ecb-echange-rates/Resource",
+    "aws:asset:path": "asset.4aca28269e959fd1ff766d5f3d11f3c2adac54ca6ba269ca811a5f3aed045bed",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "initecbechangeratesLogRetention2745FC3C": {
+   "Type": "Custom::LogRetention",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+      "Arn"
+     ]
+    },
+    "LogGroupName": {
+     "Fn::Join": [
+      "",
+      [
+       "/aws/lambda/",
+       {
+        "Ref": "initecbechangerates84913F41"
+       }
+      ]
+     ]
+    },
+    "RetentionInDays": 1
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/init-ecb-echange-rates/LogRetention/Resource"
+   }
+  },
+  "initecbechangeratesTriggerB2010146": {
+   "Type": "Custom::Trigger",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "AWSCDKTriggerCustomResourceProviderCustomResourceProviderHandler97BECD91",
+      "Arn"
+     ]
+    },
+    "HandlerArn": {
+     "Ref": "initecbechangeratesCurrentVersion31329E1Aa190aa58018db1ce264e238ac2f3de51"
+    },
+    "InvocationType": "RequestResponse",
+    "Timeout": "300000",
+    "ExecuteOnHandlerChange": false
+   },
+   "DependsOn": [
+    "tableecbexchangerates005A787E",
+    "updateecbexchangeratesLogRetention1866C204",
+    "updateecbexchangeratesA57BE1BD",
+    "updateecbexchangeratesServiceRoleDefaultPolicyCD77063D",
+    "updateecbexchangeratesServiceRole82B90291"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/init-ecb-echange-rates/Trigger/Default/Default"
+   }
+  },
+  "initecbechangeratesCurrentVersion31329E1Aa190aa58018db1ce264e238ac2f3de51": {
+   "Type": "AWS::Lambda::Version",
+   "Properties": {
+    "FunctionName": {
+     "Ref": "initecbechangerates84913F41"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/init-ecb-echange-rates/CurrentVersion/Resource"
+   }
+  },
+  "AWSCDKTriggerCustomResourceProviderCustomResourceProviderRoleE18FAF0A": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Version": "2012-10-17",
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ]
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+     }
+    ],
+    "Policies": [
+     {
+      "PolicyName": "Inline",
+      "PolicyDocument": {
+       "Version": "2012-10-17",
+       "Statement": [
+        {
+         "Effect": "Allow",
+         "Action": [
+          "lambda:InvokeFunction"
+         ],
+         "Resource": [
+          {
+           "Fn::Join": [
+            "",
+            [
+             {
+              "Fn::GetAtt": [
+               "initecbechangerates84913F41",
+               "Arn"
+              ]
+             },
+             ":*"
+            ]
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/AWSCDK.TriggerCustomResourceProviderCustomResourceProvider/Role"
+   }
+  },
+  "AWSCDKTriggerCustomResourceProviderCustomResourceProviderHandler97BECD91": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}"
+     },
+     "S3Key": "fe27a81f1e8702187a8717117fe7516f45948616ac25cefe80cc7e202365594b.zip"
+    },
+    "Timeout": 900,
+    "MemorySize": 128,
+    "Handler": "__entrypoint__.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "AWSCDKTriggerCustomResourceProviderCustomResourceProviderRoleE18FAF0A",
+      "Arn"
+     ]
+    },
+    "Runtime": {
+     "Fn::FindInMap": [
+      "LatestNodeRuntimeMap",
+      {
+       "Ref": "AWS::Region"
+      },
+      "value"
+     ]
+    }
+   },
+   "DependsOn": [
+    "AWSCDKTriggerCustomResourceProviderCustomResourceProviderRoleE18FAF0A"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/AWSCDK.TriggerCustomResourceProviderCustomResourceProvider/Handler",
+    "aws:asset:path": "asset.fe27a81f1e8702187a8717117fe7516f45948616ac25cefe80cc7e202365594b",
+    "aws:asset:property": "Code"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/1VQy07DMBD8lt5do7QSnNsgTkVEAXGtnHgxprEdee1WUZR/xy9oe9qZ8e5oPBtaPW5otWIXXPf8tB5kR+d3x/oTCdJxlkzRuTUDkPpLp9mYQfZTpBkthE+aKcPD4Qfr8mYCCxmY6jij84vXvZNGx6db3IBVEjGyT7BY1AIXgtsjQwSHdBdH4HTv+xO4PUMggxFID0a04EAnRzgHgCGvL3l9DMFGKZiDC5vofEiBWkC3G2VaKfAZxsFMKtxH9YaFLkQyyyDsG297SAn+SDHK+BXct+FRymhZrnvpG9FIanF3FLfZOBb5zbvRO+KsFCJ0EXrN6L+6whdSe3RGXW3uaGPNWXKwKWuwrY3m0qVmmylE0w9bWlX0afWDUq6tDyUqoG2ev61NsiMZAgAA"
+   },
+   "Metadata": {
+    "aws:cdk:path": "ecb-exchange-rates/CDKMetadata/Default"
+   },
+   "Condition": "CDKMetadataAvailable"
+  }
+ },
+ "Mappings": {
+  "LatestNodeRuntimeMap": {
+   "af-south-1": {
+    "value": "nodejs20.x"
+   },
+   "ap-east-1": {
+    "value": "nodejs20.x"
+   },
+   "ap-northeast-1": {
+    "value": "nodejs20.x"
+   },
+   "ap-northeast-2": {
+    "value": "nodejs20.x"
+   },
+   "ap-northeast-3": {
+    "value": "nodejs20.x"
+   },
+   "ap-south-1": {
+    "value": "nodejs20.x"
+   },
+   "ap-south-2": {
+    "value": "nodejs20.x"
+   },
+   "ap-southeast-1": {
+    "value": "nodejs20.x"
+   },
+   "ap-southeast-2": {
+    "value": "nodejs20.x"
+   },
+   "ap-southeast-3": {
+    "value": "nodejs20.x"
+   },
+   "ap-southeast-4": {
+    "value": "nodejs20.x"
+   },
+   "ap-southeast-5": {
+    "value": "nodejs20.x"
+   },
+   "ap-southeast-7": {
+    "value": "nodejs20.x"
+   },
+   "ca-central-1": {
+    "value": "nodejs20.x"
+   },
+   "ca-west-1": {
+    "value": "nodejs20.x"
+   },
+   "cn-north-1": {
+    "value": "nodejs18.x"
+   },
+   "cn-northwest-1": {
+    "value": "nodejs18.x"
+   },
+   "eu-central-1": {
+    "value": "nodejs20.x"
+   },
+   "eu-central-2": {
+    "value": "nodejs20.x"
+   },
+   "eu-north-1": {
+    "value": "nodejs20.x"
+   },
+   "eu-south-1": {
+    "value": "nodejs20.x"
+   },
+   "eu-south-2": {
+    "value": "nodejs20.x"
+   },
+   "eu-west-1": {
+    "value": "nodejs20.x"
+   },
+   "eu-west-2": {
+    "value": "nodejs20.x"
+   },
+   "eu-west-3": {
+    "value": "nodejs20.x"
+   },
+   "il-central-1": {
+    "value": "nodejs20.x"
+   },
+   "me-central-1": {
+    "value": "nodejs20.x"
+   },
+   "me-south-1": {
+    "value": "nodejs20.x"
+   },
+   "mx-central-1": {
+    "value": "nodejs20.x"
+   },
+   "sa-east-1": {
+    "value": "nodejs20.x"
+   },
+   "us-east-1": {
+    "value": "nodejs20.x"
+   },
+   "us-east-2": {
+    "value": "nodejs20.x"
+   },
+   "us-west-1": {
+    "value": "nodejs20.x"
+   },
+   "us-west-2": {
+    "value": "nodejs20.x"
+   }
+  }
+ },
+ "Outputs": {
+  "apiecbexchangeratesEndpoint68C2FB29": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "apiecbexchangerates88EA32F8"
+      },
+      ".execute-api.",
+      {
+       "Ref": "AWS::Region"
+      },
+      ".",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "apiecbexchangeratesDeploymentStageprod760EA48E"
+      },
+      "/"
+     ]
+    ]
+   }
+  }
+ },
+ "Conditions": {
+  "CDKMetadataAvailable": {
+   "Fn::Or": [
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "af-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-3"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-south-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-3"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-4"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ca-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ca-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-northwest-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-central-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-south-2"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-3"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "il-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "sa-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-west-1"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Equals": [
+      {
+       "Ref": "AWS::Region"
+      },
+      "us-west-2"
+     ]
+    }
+   ]
+  }
+ },
+ "Parameters": {
+  "BootstrapVersion": {
+   "Type": "AWS::SSM::Parameter::Value<String>",
+   "Default": "/cdk-bootstrap/hnb659fds/version",
+   "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]"
+  }
+ },
+ "Rules": {
+  "CheckBootstrapVersion": {
+   "Assertions": [
+    {
+     "Assert": {
+      "Fn::Not": [
+       {
+        "Fn::Contains": [
+         [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+         ],
+         {
+          "Ref": "BootstrapVersion"
+         }
+        ]
+       }
+      ]
+     },
+     "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI."
+    }
+   ]
+  }
+ }
+}

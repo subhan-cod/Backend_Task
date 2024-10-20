@@ -63,4 +63,3 @@ This project outlines a serverless application designed to monitor and retrieve 
 
 ## Significance of Testing
 Testing ensures the application meets design specifications and operates reliably. Integrating these tests into a CI/CD pipeline ensures continuous validation of functionality and performance.
-# CCL_BACKEND_TASK
